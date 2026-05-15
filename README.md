@@ -1,103 +1,153 @@
 # 🌱 ECOGROW — An Integrated Smart Farming Environment
 
-ECOGROW is an AI-powered smart agriculture ecosystem designed to integrate multiple farming sectors into a single intelligent platform.  
-The system combines IoT, AI prediction, cloud-based monitoring, and automation to help farmers manage:
+## 📌 Overview
 
-- 🌾 Smart Farming
-- 🐟 Aquaculture
-- 🐄 Cattle Monitoring
-- 🐔 Poultry Management
+ECOGROW is a complete IoT-enabled smart agriculture platform designed to improve modern farming through automation, environmental monitoring, AI-assisted decision-making, and centralized farm management.
 
-The platform provides real-time monitoring, predictive analytics, alert systems, and centralized dashboards for efficient farm management.
+The system integrates:
+
+* 🌾 Smart Crop Farming
+* 🐟 Aquaculture Monitoring
+* 🐄 Cattle Farm Management
+* 🐓 Poultry Farm Automation
+* ☁️ Cloud-Based Monitoring Dashboard
+* 📊 Real-Time Data Logging
+* 📧 SMS & Email Alerts
+* 🤖 AI-Based Irrigation Prediction
+
+The project combines:
+
+* ESP32-based hardware modules
+* Flask web application backend
+* Google Sheets cloud logging
+* Twilio alert system
+* Smart automation logic
+* Real-time monitoring dashboards
 
 ---
 
 # 🚀 Features
 
-## 🌾 Smart Farm Monitoring
-- Real-time soil moisture monitoring
-- Temperature & humidity tracking
-- Rain detection system
-- Automated irrigation logic
-- Water tank level monitoring
-- Crop health analysis
-- Intruder detection alerts
+## 🌾 Smart Farming Module
 
-## 🐄 Cattle Management
-- Temperature and humidity monitoring
-- Gas level monitoring
-- Fire detection alerts
-- Intruder detection system
-- Automated feeder and water pump monitoring
+* Soil moisture monitoring (3 zones)
+* Smart irrigation automation
+* Rain detection system
+* Water tank level monitoring
+* Crop health estimation
+* Intruder detection & buzzer alert
+* Smart LED lighting using LDR
+* AI moisture prediction using Linear Regression
 
-## 🐟 Aquaculture System
-- Water temperature monitoring
-- pH level analysis
-- Turbidity tracking
-- Water level monitoring
-- Smart feeding system
+## 🐟 Aquaculture Module
 
-## 🐔 Poultry Monitoring
-- Environmental monitoring
-- Fire detection alerts
-- Smart lighting control
-- Automated door monitoring
-- Gas leakage detection
+* Water temperature monitoring
+* pH monitoring
+* Turbidity monitoring
+* Water level monitoring
+* Feeding system control
+* Cloud logging support
 
----
+## 🐄 Cattle Monitoring Module
 
-# 🧠 AI & Analytics
+* Temperature & humidity monitoring
+* Gas level monitoring
+* Dung level monitoring
+* Fire detection
+* Threat/intruder detection
+* Automatic feeder monitoring
+* Pump control system
 
-ECOGROW uses Machine Learning for:
-- Soil moisture prediction
-- Trend analysis
-- Smart irrigation decisions
-- Resource optimization
+## 🐓 Poultry Monitoring Module
 
-The system uses:
-- `Linear Regression`
-- Real-time sensor analysis
-- Predictive monitoring
+* Temperature monitoring
+* Humidity monitoring
+* Gas detection
+* Fire detection
+* Smart lighting system
+* Automatic door status monitoring
 
 ---
 
-# 📲 Alert System
+# 🧠 AI Features
 
-The platform supports:
-- 📧 Email notifications
-- 📱 SMS alerts using Twilio
-- Critical warning system
-- Security breach notifications
+ECOGROW includes AI-assisted irrigation prediction using:
+
+* NumPy
+* Scikit-Learn
+* Linear Regression
+
+The system analyzes previous soil moisture readings and predicts future moisture levels to optimize irrigation and water usage.
 
 ---
 
-# 🛠️ Tech Stack
+# ☁️ Cloud & Backend Features
 
-## Backend
-- Python
-- Flask
+## Flask Backend
 
-## AI / ML
-- NumPy
-- Scikit-learn
+* Multi-user role-based dashboards
+* Real-time monitoring
+* Data ingestion APIs
+* CSV report generation
+* User authentication
+* Session management
 
-## Database & Cloud
-- Google Sheets API
-- GSpread
+## Google Sheets Integration
 
-## Communication
-- Twilio SMS API
-- Flask-Mail
+Sensor data is automatically stored in Google Sheets for:
 
-## Frontend
-- HTML
-- CSS
-- Jinja Templates
+* cloud logging
+* analytics
+* reports
+* remote monitoring
 
-## Hardware Integration
-- ESP32
-- IoT Sensors
-- Smart Monitoring Devices
+## Twilio Integration
+
+* SMS alerts for emergencies
+* Intruder alerts
+* Water tank alerts
+* Fire alerts
+
+## Email Alert System
+
+Automated email notifications for:
+
+* rainfall detection
+* water shortage
+* security alerts
+* environmental warnings
+
+---
+
+# 🛠️ Technologies Used
+
+## Software
+
+* Python
+* Flask
+* HTML
+* CSS
+* JavaScript
+* Arduino C++
+* Google Sheets API
+* Twilio API
+* Scikit-Learn
+* NumPy
+
+## Hardware
+
+* ESP32
+* Soil Moisture Sensors
+* DHT11 Sensor
+* Ultrasonic Sensor
+* Rain Sensor
+* LDR Sensor
+* IR Sensor
+* Relay Module
+* Water Pump
+* Buzzers
+* LEDs
+* Gas Sensors
 
 ---
 
@@ -108,39 +158,75 @@ ECOGROW/
 │
 ├── app.py
 ├── requirements.txt
-├── .env.example
+├── README.md
+├── LICENSE
 ├── .gitignore
 │
-├── static/
-│   ├── style.css
-│   └── images/
+├── Arduino code/
+│   ├── field_farm.ino
+│   ├── Aqua_farm.ino
+│   ├── Cattle_farm.ino
+│   └── poultry_farmer.ino
 │
 ├── templates/
-│   ├── login.html
-│   ├── farm_dashboard.html
-│   ├── aqua_dashboard.html
-│   ├── cattle_dashboard.html
-│   ├── poultry_dashboard.html
-│   ├── reports.html
-│   └── profile.html
-│
-└── assets/
+├── static/
+└── credentials.json (ignored)
 ```
 
 ---
 
-# ⚙️ Installation
+# 🔌 Hardware Architecture
+
+## 🌾 Smart Farming Flow
+
+```text
+Sensors → ESP32 → Flask Server → Google Sheets → Dashboard
+                                ↓
+                         SMS / Email Alerts
+```
+
+---
+
+# 📊 Dashboard Features
+
+* Real-time monitoring
+* AI moisture prediction
+* Resource sharing system
+* Downloadable CSV reports
+* Multi-role dashboard support
+* User profile management
+* Community resource sharing
+
+---
+
+# 📸 Screenshots
+
+> Add screenshots of your:
+
+* Login page
+* Farm dashboard
+* Reports page
+* Hardware setup
+* Circuit connections
+* Sensor outputs
+
+---
+
+# ⚙️ Installation & Setup
 
 ## 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/kiranshankar08/ECOGROW---An-Integrated-Smart-Farming-Environment.git
+```
+
+## 2️⃣ Navigate to Project Folder
+
+```bash
 cd ECOGROW---An-Integrated-Smart-Farming-Environment
 ```
 
----
-
-## 2️⃣ Install Dependencies
+## 3️⃣ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -148,7 +234,7 @@ pip install -r requirements.txt
 
 ---
 
-## 3️⃣ Configure Environment Variables
+# 🔐 Environment Variables
 
 Create a `.env` file:
 
@@ -165,93 +251,90 @@ SECRET_KEY=your_secret_key
 
 ---
 
-## 4️⃣ Add Google Sheets Credentials
+# 📄 Google Sheets Setup
 
-Place your Google API credentials file:
+1. Create a Google Cloud Project
+2. Enable Google Sheets API
+3. Create Service Account Credentials
+4. Download `credentials.json`
+5. Place it in the project root directory
 
-```bash
-credentials.json
-```
-
-inside the root project directory.
+⚠️ Never upload `.env` or `credentials.json` to GitHub.
 
 ---
 
-## 5️⃣ Run the Application
+# ▶️ Run Flask Server
 
 ```bash
 python app.py
 ```
 
-Server starts at:
+Server will start at:
 
-```bash
+```text
 http://127.0.0.1:5000
 ```
 
 ---
 
-# 📊 Dashboard Modules
+# 📡 ESP32 Setup
 
-- 🌾 Farm Dashboard
-- 🐟 Aquaculture Dashboard
-- 🐄 Cattle Dashboard
-- 🐔 Poultry Dashboard
-- 📈 Reports & Analytics
-- 👤 User Profiles
-- 🌐 Community Resource Sharing
+Open Arduino IDE and install:
 
----
+* ESP32 Board Package
+* ArduinoJson
+* WiFi Library
+* HTTPClient
+* DHT Sensor Library
 
-# 🔐 Security Features
+Update these placeholders before uploading:
 
-- Environment variable protection using `.env`
-- Sensitive credentials excluded using `.gitignore`
-- Secure API handling
-- Role-based dashboard access
-
----
-
-# 📸 Screenshots
-
-Add screenshots inside:
-
-```bash
-assets/
+```cpp
+const char* ssid = "YOUR_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
+const char* serverName = "YOUR_SERVER_URL";
 ```
 
-Example:
+Then upload the corresponding `.ino` file to the ESP32.
 
-```md
-## Login Page
-![Login](assets/login.png)
+---
 
-## Farm Dashboard
-![Dashboard](assets/dashboard.png)
+# 🔒 Security Notes
+
+Sensitive files are excluded using `.gitignore`:
+
+```gitignore
+.env
+credentials.json
+*.pyc
+__pycache__/
 ```
 
 ---
 
-# 🔮 Future Improvements
+# 🌍 Future Improvements
 
-- Mobile Application
-- AI Disease Detection
-- Drone Integration
-- Live Camera Monitoring
-- Cloud Database Migration
-- Advanced AI Prediction Models
-- GPS-based Farm Mapping
+* Mobile application integration
+* AI disease detection
+* Live camera monitoring
+* MQTT integration
+* Cloud deployment
+* GPS-based farm tracking
+* Voice assistant integration
+* Firebase integration
+* Solar-powered automation
+* Real-time analytics dashboard
 
 ---
 
 # 👨‍💻 Author
 
-## Kiran Shankar A P
+## Kiran Shankar
 
-AI | IoT | Smart Agriculture | Full Stack Development
+IoT | Embedded Systems | Smart Agriculture | AI Automation
 
 GitHub:
-https://github.com/kiranshankar08
+[https://github.com/kiranshankar08](https://github.com/kiranshankar08)
 
 ---
 
@@ -263,4 +346,14 @@ This project is licensed under the MIT License.
 
 # ⭐ Support
 
-If you found this project useful, consider giving it a ⭐ on GitHub.
+If you found this project useful:
+
+* ⭐ Star the repository
+* 🍴 Fork the project
+* 🛠️ Contribute improvements
+
+---
+
+# 🌱 ECOGROW Vision
+
+ECOGROW aims to bridge traditional agriculture with modern IoT and AI technologies to create a smarter, safer, and more sustainable farming ecosystem.
