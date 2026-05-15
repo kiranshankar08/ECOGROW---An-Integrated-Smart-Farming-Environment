@@ -246,7 +246,7 @@ Example:
 
 # 👨‍💻 Author
 
-## Kiran Shankar
+## Kiran Shankar A P
 
 AI | IoT | Smart Agriculture | Full Stack Development
 
