@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrow | Poultry Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        :root { 
+            --gold: #facc15; 
+            --bg: #050505; 
+            --glass: rgba(15, 15, 20, 0.9); 
+            --border: rgba(250, 204, 21, 0.25); 
+        }
+        
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { 
+            background: var(--bg); color: white; font-family: 'Plus Jakarta Sans', sans-serif; 
+            min-height: 100vh; overflow-x: hidden; padding: 20px; padding-bottom: 130px; 
+        }
+
+        /* PREMIUM ANIMATED BACKGROUND */
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(250, 204, 21, 0.12) 0%, transparent 60%); z-index: -2; pointer-events: none; }
+        .grid-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: linear-gradient(rgba(250, 204, 21, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(250, 204, 21, 0.05) 1px, transparent 1px); background-size: 45px 45px; transform: perspective(500px) rotateX(60deg); z-index: -1; pointer-events: none; opacity: 0.5; }
+        .spore { position: absolute; width: 3px; height: 3px; background: var(--gold); border-radius: 50%; filter: blur(1px); animation: floatUp 10s infinite linear; z-index: 0; }
+        @keyframes floatUp { 0% { transform: translateY(105vh) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
+
+        .container { max-width: 450px; margin: auto; position: relative; z-index: 10; }
+        .header-title { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; border-left: 4px solid var(--gold); padding-left: 15px; }
+        .header-title h1 { font-family: 'Orbitron'; font-size: 20px; letter-spacing: 3px; }
+
+        /* GLASS CARDS */
+        .card { 
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 30px; padding: 25px; margin-bottom: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        h2 { font-family: 'Orbitron'; color: var(--gold); font-size: 11px; margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; }
+
+        /* DATA TABLE */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th { color: var(--gold); text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--border); font-family: 'Orbitron'; font-size: 10px; }
+        td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); }
+        .status-on { color: var(--gold); font-weight: bold; text-shadow: 0 0 10px var(--gold); }
+
+        /* DOWNLOAD BUTTON */
+        .download-btn {
+            width: 100%; background: linear-gradient(90deg, var(--gold), #b8860b);
+            color: black; border: none; padding: 15px; border-radius: 20px;
+            font-family: 'Orbitron'; font-weight: 900; font-size: 12px; letter-spacing: 2px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s;
+        }
+
+        /* 🚨 THE MAIN NAVIGATION BAR (STANDARD ECOGROW DESIGN) 🚨 */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 92%; max-width: 420px; background: rgba(5, 10, 20, 0.95); backdrop-filter: blur(30px); 
+            border: 1px solid var(--border); border-radius: 35px; height: 80px;
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .nav-item { color: rgba(255,255,255,0.2); font-size: 22px; text-decoration: none; transition: 0.3s; }
+        .nav-item.active { color: var(--gold); filter: drop-shadow(0 0 10px var(--gold)); }
+        
+        /* Central "+" Button Logic */
+        .post-btn-main { 
+            width: 60px; height: 60px; background: var(--gold); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: black !important; font-size: 24px; margin-top: -45px; 
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.5); 
+            border: 5px solid #020408; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-layer" id="glow"></div>
+<div class="grid-bg"></div>
+<div id="spores"></div>
+
+<div class="container">
+    <div class="header-title">
+        <h1>POULTRY <span style="color: var(--gold);">ANALYTICS</span></h1>
+    </div>
+
+    <div class="card">
+        <h2>Climate Velocity</h2>
+        <canvas id="poultryChart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+        <button class="download-btn" onclick="exportToCSV()">
+            <i class="fas fa-cloud-download-alt"></i> EXPORT CSV REPORT
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>Historical Logs</h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Time</th><th>Temp</th><th>Gas</th><th>Bulb</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td>{{ row['Timestamp'].split(' ')[1] }}</td>
+                        <td>{{ row['Temp (°C)'] }}°</td>
+                        <td>{{ row['Gas_Level (ppm)'] }}</td>
+                        <td class="{% if row['Light_Bulb_Status'] == 'ON' %}status-on{% endif %}">{{ row['Light_Bulb_Status'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/poultry-dashboard" class="nav-item">
+        <i class="fa-solid fa-house-signal"></i>
+    </a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    
+    <a href="/community" class="nav-item post-btn-main">
+        <i class="fa-solid fa-plus"></i>
+    </a>
+    
+    <a href="/reports" class="nav-item active">
+        <i class="fa-solid fa-chart-pie"></i>
+    </a>
+    <a href="/profile" class="nav-item">
+        <i class="fa-solid fa-user-astronaut"></i>
+    </a>
+</nav>
+
+<script>
+    // Mouse Interaction
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.getElementById('glow').style.setProperty('--x', x + '%');
+        document.getElementById('glow').style.setProperty('--y', y + '%');
+    });
+
+    // Spore Generator
+    const sporeBox = document.getElementById('spores');
+    for(let i=0; i<15; i++) {
+        let s = document.createElement('div');
+        s.className = 'spore';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.animationDelay = Math.random() * 5 + 's';
+        sporeBox.appendChild(s);
+    }
+
+    // Chart logic
+    const ctx = document.getElementById('poultryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for p in chart_pts %}"{{ p['Timestamp'].split(' ')[1] }}",{% endfor %}],
+            datasets: [{
+                label: 'Temp',
+                data: [{% for p in chart_pts %}{{ p['Temp (°C)'] }},{% endfor %}],
+                borderColor: '#facc15',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(250, 204, 21, 0.05)'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                x: { grid: { display: false }, ticks: { color: '#666' } }
+            }
+        }
+    });
+
+    // CSV Export
+    function exportToCSV() {
+        let csv = ["Time,Temp,Gas,Bulb"];
+        let tableRows = document.querySelectorAll("table tbody tr");
+        tableRows.forEach(tr => {
+            let row = [];
+            tr.querySelectorAll("td").forEach(td => row.push(td.innerText));
+            csv.push(row.join(","));
+        });
+        let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+        let dl = document.createElement("a");
+        dl.download = "Poultry_Report.csv";
+        dl.href = window.URL.createObjectURL(csvFile);
+        dl.click();
+    }
+</script>
+</body>
+</html>

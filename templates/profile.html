@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Farmer Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #020408;
+        --meta-green: #00ff88;
+        --meta-blue: #00d4ff;
+        --meta-amber: #ffaa00;
+        --meta-gold: #facc15; /* Poultry Theme */
+        
+        /* THEME SWITCH LOGIC FOR ALL ROLES */
+        --theme-primary: {{ 'var(--meta-gold)' if session['role'] == 'Poultry' else 'var(--meta-amber)' if session['role'] == 'Cattle' else 'var(--meta-blue)' if session['role'] == 'Aqua' else 'var(--meta-green)' }};
+        
+        --glass: rgba(10, 15, 25, 0.75);
+        --glass-border: rgba({{ '250, 204, 21' if session['role'] == 'Poultry' else '255, 170, 0' if session['role'] == 'Cattle' else '0, 212, 255' if session['role'] == 'Aqua' else '0, 255, 136' }}, 0.3);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-deep); color: white; min-height: 100vh; overflow-x: hidden; position: relative; }
+
+    /* ANIMATED THEME LAYERS */
+    .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), var(--theme-primary) 0%, transparent 60%); z-index: -2; opacity: 0.12; pointer-events: none; }
+    .grid-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: linear-gradient(var(--theme-primary) 1px, transparent 1px), linear-gradient(90deg, var(--theme-primary) 1px, transparent 1px); background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(var(--ty, 0)); z-index: -1; opacity: 0.05; pointer-events: none; }
+    .spore { position: absolute; width: 4px; height: 4px; background: var(--theme-primary); border-radius: 50%; filter: blur(2px) drop-shadow(0 0 8px var(--theme-primary)); animation: floatUp 12s infinite linear; pointer-events: none; z-index: 0; }
+    @keyframes floatUp { 0% { transform: translateY(105vh); } 100% { transform: translateY(-10vh); } }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; padding-bottom: 120px; position: relative; z-index: 10; }
+
+    /* PROFILE SECTION */
+    .profile-hero { text-align: center; padding: 30px 0; }
+    .avatar-glow {
+        width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 50%;
+        border: 2px solid var(--theme-primary); padding: 6px;
+        background: radial-gradient(circle, var(--theme-primary) 0%, transparent 70%);
+        box-shadow: 0 0 40px rgba({{ '250, 204, 21' if session['role'] == 'Poultry' else '255, 170, 0' if session['role'] == 'Cattle' else '0, 212, 255' if session['role'] == 'Aqua' else '0, 255, 136' }}, 0.2);
+    }
+    .avatar-glow img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    
+    .name-title { font-family: 'Orbitron'; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+    .role-badge { background: rgba({{ '250, 204, 21' if session['role'] == 'Poultry' else '255, 170, 0' if session['role'] == 'Cattle' else '0, 212, 255' if session['role'] == 'Aqua' else '0, 255, 136' }}, 0.1); color: var(--theme-primary); padding: 5px 15px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; display: inline-block; margin-top: 10px; border: 1px solid var(--glass-border); }
+
+    .card {
+        background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 30px; 
+        padding: 25px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+
+    .label { font-size: 10px; color: var(--theme-primary); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; display: block; font-weight: 800; opacity: 0.8; }
+
+    .info-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+    .info-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--theme-primary); font-size: 16px; }
+    .info-content div:first-child { font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+    .info-content div:last-child { font-weight: 600; font-size: 14px; }
+
+    .btn-logout {
+        width: 100%; padding: 20px; border-radius: 18px; border: 1px solid rgba(255, 62, 62, 0.3);
+        background: rgba(255, 62, 62, 0.05); color: #ff3e3e; font-family: 'Orbitron'; 
+        font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .btn-logout:hover { background: #ff3e3e; color: white; }
+
+    /* NAV */
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        width: 92%; max-width: 420px; background: rgba(5, 10, 20, 0.95); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 35px; height: 80px;
+        display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+    }
+    .nav-item { color: rgba(255,255,255,0.2); font-size: 22px; text-decoration: none; transition: 0.3s; }
+    .nav-item.active { color: var(--theme-primary); filter: drop-shadow(0 0 10px var(--theme-primary)); }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="grid-bg" id="grid"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <div class="profile-hero">
+        <div class="avatar-glow">
+            <img src="https://ui-avatars.com/api/?name={{ user.name }}&background={{ 'facc15' if session['role'] == 'Poultry' else 'ffaa00' if session['role'] == 'Cattle' else '00d4ff' if session['role'] == 'Aqua' else '00ff88' }}&color=000&bold=true" alt="Farmer">
+        </div>
+        <div class="name-title">{{ user.name }}</div>
+        <div class="role-badge">{{ session['role'] }} OS Specialist</div>
+    </div>
+
+    <div class="card">
+        <span class="label">Farmer Registry</span>
+        <div class="info-row">
+            <div class="info-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+            <div class="info-content"><div>Digital ID</div><div>{{ user.email }}</div></div>
+        </div>
+        <div class="info-row">
+            <div class="info-icon"><i class="fa-solid fa-building-columns"></i></div>
+            <div class="info-content"><div>Affiliation</div><div>Kristu Jayanti College</div></div>
+        </div>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, rgba({{ '250,204,21' if session['role'] == 'Poultry' else '255,170,0' if session['role'] == 'Cattle' else '0,212,255' if session['role'] == 'Aqua' else '0,255,136' }}, 0.1) 0%, transparent 100%);">
+        <span class="label">Deployment Sectors</span>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px;">
+            {% if session['role'] == 'Poultry' %}
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-feather-pointed" style="color:var(--meta-gold)"></i> Brooder House A
+                </div>
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-egg" style="color:var(--meta-gold)"></i> Nesting Zone 4
+                </div>
+            {% elif session['role'] == 'Cattle' %}
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-cow" style="color:var(--meta-amber)"></i> Main Shed A
+                </div>
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-clover" style="color:var(--meta-amber)"></i> Grazing Zone 1
+                </div>
+            {% elif session['role'] == 'Aqua' %}
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-fish" style="color:var(--meta-blue)"></i> Fish Tank A1
+                </div>
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-shrimp" style="color:var(--meta-blue)"></i> Prawn Sector
+                </div>
+            {% else %}
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-seedling" style="color:var(--meta-green)"></i> Rice Zone
+                </div>
+                <div style="font-size: 11px; padding: 8px 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--glass-border);">
+                    <i class="fa-solid fa-wheat-awn" style="color:var(--meta-green)"></i> Wheat Field
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <button class="btn-logout" onclick="location.href='/logout'">
+        <i class="fa-solid fa-door-closed"></i> TERMINATE SESSION
+    </button>
+</div>
+
+<nav class="bottom-nav">
+    <a href="{{ '/poultry-dashboard' if session['role'] == 'Poultry' else '/cattle-dashboard' if session['role'] == 'Cattle' else '/aqua-dashboard' if session['role'] == 'Aqua' else '/farm-dashboard' }}" class="nav-item">
+        <i class="fa-solid fa-house-signal"></i>
+    </a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/reports" class="nav-item"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item active"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.body.style.setProperty('--x', x + '%');
+        document.body.style.setProperty('--y', y + '%');
+        document.getElementById('grid').style.setProperty('--ty', (y * -0.2) + 'px');
+    });
+
+    const container = document.getElementById('spore-container');
+    for (let i = 0; i < 20; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        spore.style.left = Math.random() * 100 + 'vw';
+        spore.style.animationDelay = Math.random() * 10 + 's';
+        container.appendChild(spore);
+    }
+</script>
+</body>
+</html>

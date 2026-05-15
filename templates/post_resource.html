@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Post Resource | EcoGrow</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #020408;
+        --meta-green: #00ff88;
+        --meta-blue: #00d4ff;
+        --glass: rgba(10, 15, 25, 0.75);
+        --glass-border: rgba(0, 255, 136, 0.3);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+        background: var(--bg-deep);
+        color: white;
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* THEME BACKGROUND LAYERS */
+    .bg-layer {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-image: 
+            radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0, 255, 136, 0.12) 0%, transparent 60%),
+            linear-gradient(rgba(0, 255, 136, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 136, 0.05) 1px, transparent 1px);
+        background-size: 100% 100%, 45px 45px, 45px 45px;
+        z-index: -2;
+        pointer-events: none;
+    }
+
+    .grid-bg {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background-image: linear-gradient(rgba(0, 255, 136, 0.05) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(0, 255, 136, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        transform: perspective(500px) rotateX(60deg) translateY(var(--ty, 0));
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .spore {
+        position: absolute; width: 4px; height: 4px;
+        background: var(--meta-green); border-radius: 50%;
+        filter: blur(2px) drop-shadow(0 0 8px var(--meta-green));
+        animation: floatUp 12s infinite linear; pointer-events: none; z-index: 0;
+    }
+    @keyframes floatUp { 0% { transform: translateY(105vh) scale(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; position: relative; z-index: 10; }
+
+    header { display: flex; align-items: center; gap: 20px; padding: 20px 0 30px; }
+    .back-btn { 
+        width: 45px; height: 45px; background: var(--glass); border: 1px solid var(--glass-border); 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        color: var(--meta-green); text-decoration: none; transition: 0.3s;
+    }
+
+    .card {
+        background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 30px; 
+        padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+
+    .form-group { margin-bottom: 25px; }
+    label { 
+        display: block; font-family: 'Orbitron'; font-size: 10px; color: var(--meta-green); 
+        letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; 
+    }
+
+    input, select { 
+        width: 100%; padding: 16px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1); 
+        background: rgba(255,255,255,0.05); color: white; outline: none; transition: 0.3s;
+        font-size: 14px;
+    }
+
+    input:focus, select:focus { border-color: var(--meta-green); background: rgba(0, 255, 136, 0.05); }
+
+    /* TARGET TOGGLE STYLING */
+    .target-selector {
+        display: flex;
+        background: rgba(255,255,255,0.05);
+        border-radius: 15px;
+        padding: 5px;
+        gap: 5px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .target-btn {
+        flex: 1;
+        padding: 12px 10px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: rgba(255,255,255,0.4);
+        font-family: 'Orbitron';
+        font-size: 9px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: 0.4s;
+    }
+    .target-btn.active {
+        background: var(--meta-green);
+        color: black;
+        font-weight: 900;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+    }
+
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ff88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 18px;
+    }
+
+    select option { background-color: #050a08; color: white; }
+
+    .btn-submit { 
+        width: 100%; padding: 20px; background: linear-gradient(135deg, var(--meta-green), var(--meta-blue)); 
+        color: black; border: none; border-radius: 18px; font-family: 'Orbitron'; 
+        font-weight: 900; letter-spacing: 2px; cursor: pointer; transition: 0.4s;
+        box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2);
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0, 255, 136, 0.4); }
+
+    .alert-success { 
+        background: rgba(0, 255, 136, 0.2); border: 1px solid var(--meta-green); 
+        color: var(--meta-green); padding: 15px; border-radius: 15px; 
+        text-align: center; margin-bottom: 25px; font-family: 'Orbitron'; font-size: 12px;
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" id="bg-glow"></div>
+<div class="grid-bg" id="grid"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <header>
+        <a href="/community" class="back-btn"><i class="fa-solid fa-chevron-left"></i></a>
+        <h1 style="font-family:'Orbitron'; font-size: 20px; letter-spacing: 3px;">POST <span style="color:var(--meta-green)">RESOURCE</span></h1>
+    </header>
+
+    {% if success %}
+    <div class="alert-success">✓ BROADCAST INITIALIZED</div>
+    <script>setTimeout(()=> window.location.href='/community', 2000);</script>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST">
+            <div class="form-group">
+                <label>Broadcast Signal (B2B / D2C)</label>
+                <div class="target-selector">
+                    <button type="button" class="target-btn active" id="btn-f2f" onclick="setMode('farmer')">PEER-TO-PEER</button>
+                    <button type="button" class="target-btn" id="btn-d2c" onclick="setMode('consumer')">DIRECT-MARKET</button>
+                </div>
+                <input type="hidden" name="target_audience" id="target_audience" value="farmer">
+            </div>
+
+            <div class="form-group">
+                <label>Resource Archetype</label>
+                <select name="resource_name" id="resource_name" required>
+                    <option value="" disabled selected>SELECT TYPE</option>
+                    <optgroup label="B2B (Farmer Resources)">
+                        <option>Organic Manure</option>
+                        <option>Rice Stock (Bulk)</option>
+                        <option>Wheat Grain (Bulk)</option>
+                        <option>Bio-Fertilizer</option>
+                        <option>Agricultural Seeds</option>
+                    </optgroup>
+                    <optgroup label="D2C (Market Goods)">
+                        <option>Fresh Vegetable Box</option>
+                        <option>Farm Fresh Eggs</option>
+                        <option>Organic Milk/Dairy</option>
+                        <option>Seasonal Fruits</option>
+                        <option>Natural Honey</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="form-group" id="price-group" style="display:none;">
+                <label>Market Valuation (Price)</label>
+                <div style="position:relative;">
+                    <i class="fa-solid fa-indian-rupee-sign" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--meta-green); font-size:12px;"></i>
+                    <input type="number" name="price" id="price-input" placeholder="Price for Customers" style="padding-left:40px;">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:15px;">
+                <div class="form-group" style="flex:2;">
+                    <label>Quantity</label>
+                    <input type="number" name="amount" placeholder="e.g. 50" required>
+                </div>
+                <div class="form-group" style="flex:1.2;">
+                    <label>Metric</label>
+                    <select name="unit">
+                        <option>kg</option>
+                        <option>Liters</option>
+                        <option>Units</option>
+                        <option>Tons</option>
+                        <option>Bundles</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Secure Phone ID</label>
+                <input type="tel" name="phone" placeholder="Contact Number" required>
+            </div>
+
+            <div class="form-group">
+                <label>Deployment Location</label>
+                <input type="text" name="address" placeholder="Street / Block" required>
+                <input type="text" name="place" placeholder="City / Region" style="margin-top:12px;" required>
+            </div>
+
+            <button type="submit" class="btn-submit">INITIALIZE BROADCAST</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function setMode(mode) {
+        const targetInput = document.getElementById('target_audience');
+        const priceGroup = document.getElementById('price-group');
+        const priceInput = document.getElementById('price-input');
+        
+        targetInput.value = mode;
+        $('.target-btn').removeClass('active');
+        
+        if (mode === 'consumer') {
+            document.getElementById('btn-d2c').classList.add('active');
+            priceGroup.style.display = 'block';
+            priceInput.required = true;
+        } else {
+            document.getElementById('btn-f2f').classList.add('active');
+            priceGroup.style.display = 'none';
+            priceInput.required = false;
+        }
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.body.style.setProperty('--x', x + '%');
+        document.body.style.setProperty('--y', y + '%');
+        document.getElementById('grid').style.setProperty('--ty', (y * -0.2) + 'px');
+    });
+
+    const container = document.getElementById('spore-container');
+    for (let i = 0; i < 20; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        spore.style.left = Math.random() * 100 + 'vw';
+        spore.style.animationDelay = Math.random() * 10 + 's';
+        container.appendChild(spore);
+    }
+</script>
+</body>
+</html>

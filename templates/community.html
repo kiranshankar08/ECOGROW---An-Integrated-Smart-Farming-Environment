@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | BioHub Community</title>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+/* ----------------- VARIABLES ----------------- */
+:root {
+    --bg-deep: #020408;
+    --meta-green: #00ff88;
+    --meta-blue: #00d4ff;
+    --glass: rgba(10, 15, 25, 0.7);
+    --glass-border: rgba(0, 255, 136, 0.3);
+}
+
+/* ----------------- GLOBAL ----------------- */
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+body {
+    background: var(--bg-deep);
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ----------------- BACKGROUNDS ----------------- */
+.bg-layer {
+    position: fixed; top:0; left:0; width:100vw; height:100vh;
+    background-image: 
+        radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0,255,136,0.12) 0%, transparent 60%),
+        linear-gradient(rgba(0,255,136,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 45px 45px, 45px 45px;
+    z-index: -2; pointer-events: none;
+}
+.grid-bg {
+    position: fixed; top:0; left:0; width:100vw; height:100vh;
+    background-image: linear-gradient(rgba(0,255,136,0.05) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,255,136,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(500px) rotateX(60deg) translateY(var(--ty, 0));
+    z-index: -1; pointer-events: none;
+}
+.spore {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--meta-green);
+    filter: blur(2px) drop-shadow(0 0 8px var(--meta-green));
+    animation: floatUp 12s infinite linear;
+    pointer-events: none; z-index: 0;
+}
+@keyframes floatUp {
+    0% { transform: translateY(105vh) scale(0); opacity:0; }
+    50% { opacity:0.8; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity:0; }
+}
+
+/* ----------------- APP CONTAINER ----------------- */
+.app {
+    max-width: 450px;
+    margin: auto;
+    padding: 25px 25px 140px 25px;
+    position: relative;
+    z-index: 10;
+}
+
+/* ----------------- HEADER ----------------- */
+header {
+    display: flex; justify-content: space-between; align-items: center; padding: 20px 0;
+}
+.logo-mini {
+    width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--meta-green);
+    padding: 2px; background: radial-gradient(circle, var(--meta-green) 0%, transparent 70%);
+}
+
+/* ----------------- VIEW TABS ----------------- */
+.view-tabs {
+    display: flex; background: var(--glass); border:1px solid var(--glass-border);
+    border-radius:15px; padding:5px; margin:20px 0;
+}
+.tab {
+    flex:1; padding:12px; text-align:center; font-family:'Orbitron'; font-size:10px;
+    letter-spacing:1px; border-radius:10px; cursor:pointer; transition:0.3s;
+    color: rgba(255,255,255,0.5);
+}
+.tab.active {
+    background: var(--meta-green); color:black; font-weight:900;
+}
+
+/* ----------------- HEADINGS ----------------- */
+h2 {
+    font-family: 'Orbitron'; font-size:14px; color: var(--meta-green);
+    letter-spacing:2px; margin:30px 0 15px; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+}
+h2::after {
+    content:''; flex:1; height:1px; background: var(--glass-border);
+}
+
+/* ----------------- CARDS ----------------- */
+.card {
+    background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border:1px solid var(--glass-border); border-radius:28px;
+    padding:22px; margin-bottom:18px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    position:relative; overflow:hidden;
+}
+.type-glow { position:absolute; top:0; left:0; width:4px; height:100%; }
+.type-farmer { background: var(--meta-blue); }
+.type-consumer { background: var(--meta-green); }
+
+.resource-tag {
+    background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    color:#fff; padding:5px 12px; border-radius:12px; font-size:10px;
+    font-weight:800; font-family:'Orbitron';
+}
+.amount-text {
+    font-family: 'Orbitron'; font-size:24px; font-weight:900; margin:10px 0; color:#fff;
+}
+.price-tag {
+    color: var(--meta-green); font-family:'Orbitron'; font-size:20px;
+    margin-left:10px; font-weight:900; border-left:1px solid rgba(255,255,255,0.2);
+    padding-left:15px;
+}
+.btn-call {
+    width:100%; padding:14px; background: linear-gradient(135deg, var(--meta-green), var(--meta-blue));
+    border-radius:15px; color:#000; text-decoration:none;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    font-weight:800; font-family:'Orbitron'; font-size:11px; margin-top:15px;
+}
+
+/* ----------------- BOTTOM NAV ----------------- */
+.bottom-nav {
+    position: fixed; bottom:20px; left:50%; transform: translateX(-50%);
+    width:92%; max-width:420px; background: rgba(5,10,20,0.95);
+    backdrop-filter: blur(30px); border:1px solid var(--glass-border);
+    border-radius:35px; height:80px; display:flex; justify-content:space-around;
+    align-items:center; z-index:1000;
+}
+.nav-item { color: rgba(255,255,255,0.3); font-size:22px; text-decoration:none; }
+.nav-item.active { color: var(--meta-green); filter: drop-shadow(0 0 10px var(--meta-green)); }
+.post-btn-main {
+    width:60px; height:60px; background: var(--meta-green); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:black !important; font-size:24px; margin-top:-45px;
+    box-shadow:0 0 25px rgba(0,255,136,0.5); border:5px solid var(--bg-deep);
+}
+</style>
+</head>
+
+<body>
+
+<!-- Background Layers -->
+<div class="bg-layer" id="bg-glow"></div>
+<div class="grid-bg" id="grid"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <!-- HEADER -->
+    <header>
+        <img src="{{ url_for('static', filename='images/ecogrow_logo.png') }}" class="logo-mini">
+        <div style="font-family:'Orbitron'; font-size:20px; letter-spacing:4px;">
+            BIO<span style="color:var(--meta-green)">HUB</span>
+        </div>
+        <i class="fa-solid fa-tower-broadcast" style="color:var(--meta-green); font-size:20px; animation: blink 2s infinite;"></i>
+    </header>
+
+    <!-- TABS -->
+    <div class="view-tabs">
+        <div class="tab active" onclick="filterFeed('all', this)">ALL SIGNALS</div>
+        <div class="tab" onclick="filterFeed('farmer', this)">B2B RESOURCES</div>
+        <div class="tab" onclick="filterFeed('consumer', this)">D2C MARKET</div>
+    </div>
+
+    <!-- FEED SECTION -->
+    <h2><i class="fa-solid fa-wave-square"></i> Live Broadcasts</h2>
+    <div id="resource-feed">
+        {% for post in posts | reverse %}
+        {% set p_audience = post.get('Target_Audience') or post.get('target_audience') or 'farmer' %}
+        {% set p_price = post.get('Price') or post.get('price') %}
+        {% set item_type = p_audience | lower %}
+        {% if p_price %} {% set item_type = 'consumer' %} {% endif %}
+
+        <div class="card feed-item" data-type="{{ item_type }}">
+            <div class="type-glow {% if item_type == 'consumer' %}type-consumer{% else %}type-farmer{% endif %}"></div>
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-weight:800; font-size:15px;">{{ post.get('Farmer_Name') }}</div>
+                    <div style="font-size:9px; color:var(--meta-blue); letter-spacing:1px; text-transform:uppercase;">
+                        {% if item_type == 'consumer' %}
+                            <i class="fa-solid fa-shop"></i> Verified Vendor
+                        {% else %}
+                            <i class="fa-solid fa-tractor"></i> Bulk Supplier
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="resource-tag">{{ post.get('Resource_Name') }}</span>
+            </div>
+
+            <div style="display:flex; align-items:center; margin-top:10px;">
+                <div class="amount-text">
+                    {{ post.get('Amount') }} 
+                    <span style="font-size:12px; opacity:0.5; font-family:'Plus Jakarta Sans'; font-weight:500;">
+                        {{ post.get('unit', 'Units') }}
+                    </span>
+                </div>
+                {% if p_price %}
+                <div class="price-tag">₹{{ p_price }}</div>
+                {% endif %}
+            </div>
+
+            <div style="font-size:11px; opacity:0.6; display:flex; align-items:center; gap:6px; margin-bottom:5px;">
+                <i class="fa-solid fa-location-dot" style="color:var(--meta-green)"></i> {{ post.get('Location') }}
+            </div>
+
+            <a href="tel:{{ post.get('Phone') }}" class="btn-call">
+                <i class="fa-solid fa-phone-flip"></i> 
+                {% if item_type == 'consumer' %} PROCEED TO PURCHASE {% else %} SECURE RESOURCE {% endif %}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- BOTTOM NAVIGATION -->
+<nav class="bottom-nav">
+    <a href="/dashboard" class="nav-item"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community" class="nav-item active"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/post-resource" class="nav-item post-btn-main"><i class="fa-solid fa-plus"></i></a>
+    <a href="/reports" class="nav-item"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<!-- SCRIPTS -->
+<script>
+function filterFeed(type, element) {
+    $('.tab').removeClass('active');
+    $(element).addClass('active');
+    if(type === 'all') {
+        $('.feed-item').stop().fadeIn(400);
+    } else {
+        $('.feed-item').hide();
+        $('.feed-item[data-type="' + type + '"]').stop().fadeIn(400);
+    }
+}
+
+// Background glow movement
+window.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.body.style.setProperty('--x', x + '%');
+    document.body.style.setProperty('--y', y + '%');
+    document.getElementById('grid').style.setProperty('--ty', (y * -0.2) + 'px');
+});
+
+// Spawn spores
+const container = document.getElementById('spore-container');
+for(let i=0; i<20; i++){
+    const spore = document.createElement('div');
+    spore.className='spore';
+    spore.style.left=Math.random()*100+'vw';
+    spore.style.animationDelay=Math.random()*10+'s';
+    container.appendChild(spore);
+}
+</script>
+
+</body>
+</html>

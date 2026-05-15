@@ -1,0 +1,8 @@
+Flask
+gspread
+oauth2client
+twilio
+numpy
+scikit-learn
+Flask-Mail
+python-dotenv

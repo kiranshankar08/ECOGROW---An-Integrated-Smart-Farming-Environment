@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Cattle OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #020408;
+        --meta-amber: #ffaa00;
+        --meta-purple: #a855f7;
+        --meta-red: #ff3e3e;
+        --glass: rgba(10, 15, 25, 0.85);
+        --glass-border: rgba(255, 170, 0, 0.3);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-deep); color: white; min-height: 100vh; overflow-x: hidden; position: relative; }
+
+    /* --- PREMIUM BACKGROUND EFFECTS --- */
+    .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 170, 0, 0.15) 0%, transparent 60%); z-index: -2; pointer-events: none; }
+    .grid-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: linear-gradient(rgba(255, 170, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 170, 0, 0.05) 1px, transparent 1px); background-size: 45px 45px; transform: perspective(500px) rotateX(60deg) translateY(var(--ty, 0)); z-index: -1; opacity: 0.5; pointer-events: none; }
+    .spore { position: absolute; width: 3px; height: 3px; background: var(--meta-amber); border-radius: 50%; filter: blur(1px); animation: floatUp 10s infinite linear; z-index: 0; }
+    @keyframes floatUp { 0% { transform: translateY(105vh) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; padding-bottom: 120px; position: relative; z-index: 10; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 30px; }
+    .logo-mini { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--meta-amber); padding: 3px; box-shadow: 0 0 20px rgba(255,170,0,0.3); }
+
+    .card {
+        background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 30px; 
+        padding: 24px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .label { font-size: 10px; color: var(--meta-amber); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; font-weight: 800; opacity: 0.8; }
+    .value { font-family: 'Orbitron'; font-size: 26px; font-weight: 900; }
+
+    .beacon-card { border-left: 5px solid var(--meta-amber); transition: 0.4s; }
+    .alert-active { border-left-color: var(--meta-red) !important; background: rgba(255, 62, 62, 0.15) !important; box-shadow: 0 0 30px rgba(255, 62, 62, 0.2); }
+
+    .pad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .actuator-status { font-size: 9px; font-weight: 900; margin-top: 8px; color: var(--meta-purple); text-transform: uppercase; letter-spacing: 1px; }
+
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        width: 92%; max-width: 420px; background: rgba(5, 5, 10, 0.95); backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border); border-radius: 35px; height: 80px;
+        display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+    }
+    .nav-item { color: rgba(255,255,255,0.2); font-size: 22px; transition: 0.3s; text-decoration: none; }
+    .nav-item.active { color: var(--meta-amber); filter: drop-shadow(0 0 10px var(--meta-amber)); }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" id="glow"></div>
+<div class="grid-bg" id="grid"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <header>
+        <img src="{{ url_for('static', filename='images/ecogrow_logo.png') }}" class="logo-mini">
+        <div style="font-family: 'Orbitron'; font-size: 18px; letter-spacing: 4px;">CATTLE <span style="color:var(--meta-amber)">OS</span></div>
+        <i class="fa-solid fa-shield-cat" style="color:var(--meta-amber); font-size: 20px;"></i>
+    </header>
+
+    <div class="card beacon-card" id="intruder-card">
+        <span class="label">Security Sentry (Laser)</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="value" id="intruder-status">CLEAR</div>
+                <div id="sync-time" style="font-size: 9px; opacity: 0.5; margin-top: 5px;">LAST SYNC: ---</div>
+            </div>
+            <i class="fa-solid fa-user-secret" id="intruder-icon" style="font-size: 30px; opacity: 0.2; transition: 0.3s;"></i>
+        </div>
+    </div>
+
+    <div class="card beacon-card" id="gas-alert-card">
+        <span class="label">Ammonia Toxicity Sentry</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="value" id="gas-status">OPTIMAL</div>
+            <i class="fa-solid fa-biohazard" id="gas-icon" style="font-size: 30px; opacity: 0.2; transition: 0.3s;"></i>
+        </div>
+    </div>
+
+    <div class="card beacon-card" id="fire-card">
+        <span class="label">Thermal Sentry (Fire)</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="value" id="fire-status">SAFE</div>
+            <i class="fa-solid fa-fire-flame-curved" id="fire-icon" style="font-size: 30px; opacity: 0.2; transition: 0.3s;"></i>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Temperature</span>
+                <div class="value" style="font-size: 24px;"><span id="temp">0</span>°C</div>
+            </div>
+            <div style="width: 1px; height: 35px; background: var(--glass-border);"></div>
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Ammonia Level</span>
+                <div class="value" style="font-size: 24px;"><span id="gas-val">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <span class="label">Waste Level (Dung Pit)</span>
+        <div style="display: flex; align-items: flex-end; gap: 8px;">
+            <div class="value" id="dung" style="font-size: 26px;">0</div>
+            <div style="font-size: 12px; margin-bottom: 6px; opacity: 0.6; font-family: 'Orbitron';">%</div>
+        </div>
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-top: 15px; overflow: hidden;">
+            <div id="dung-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--meta-amber), #ff5500); transition: 1.5s cubic-bezier(0.1, 0, 0, 1);"></div>
+        </div>
+    </div>
+
+    <div class="pad-grid">
+        <div class="card" style="margin-bottom:0; text-align:center; padding: 20px;">
+            <span class="label">Feeder</span>
+            <i class="fa-solid fa-box-open" id="feeder-icon" style="font-size: 20px; color: var(--meta-purple); margin-bottom: 8px;"></i>
+            <div class="actuator-status" id="feeder-val">STBY</div>
+        </div>
+        <div class="card" style="margin-bottom:0; text-align:center; padding: 20px;">
+            <span class="label">Pump</span>
+            <i class="fa-solid fa-faucet-drip" id="pump-icon" style="font-size: 20px; color: var(--meta-purple); margin-bottom: 8px;"></i>
+            <div class="actuator-status" id="pump-val">STBY</div>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/cattle-dashboard" class="nav-item active"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/reports" class="nav-item"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    // Parallax logic
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.getElementById('glow').style.setProperty('--x', x + '%');
+        document.getElementById('glow').style.setProperty('--y', y + '%');
+        document.getElementById('grid').style.setProperty('--ty', (y * -0.1) + 'px');
+    });
+
+    const sporeContainer = document.getElementById('spore-container');
+    for (let i = 0; i < 15; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        spore.style.left = Math.random() * 100 + 'vw';
+        spore.style.animationDelay = Math.random() * 8 + 's';
+        sporeContainer.appendChild(spore);
+    }
+
+    function updateCattleUI() {
+        $.getJSON("/dashboard-data", res => {
+            if (res && res.data) {
+                const d = res.data;
+                const getVal = (keyPart) => {
+                    const foundKey = Object.keys(d).find(k => k.includes(keyPart));
+                    return d[foundKey];
+                };
+
+                // Telemetry
+                $("#sync-time").text("SYNC: " + (getVal("Timestamp") || "---").split(' ')[1]);
+                $("#temp").text(getVal("Temp") || "0");
+                const gas = parseInt(getVal("Gas_Level") || 0);
+                $("#gas-val").text(gas);
+                const dung = getVal("Dung_Level") || 0;
+                $("#dung").text(dung);
+                $("#dung-bar").css("width", dung + "%");
+
+                // Actuators
+                $("#feeder-val").text(getVal("Feeder_Status") || "CLOSED");
+                $("#pump-val").text(getVal("Pump_Status") || "OFF");
+
+                // 🕵️ INTRUDER LOGIC
+                const intruderSignal = parseInt(getVal("Intruder_Signal")) || 0;
+                if (intruderSignal === 1) {
+                    $("#intruder-card").addClass("alert-active");
+                    $("#intruder-status").text("SECURITY BREACH").css("color", "var(--meta-red)");
+                    $("#intruder-icon").addClass("fa-beat-fast").css({"color": "var(--meta-red)", "opacity": "1"});
+                } else {
+                    $("#intruder-card").removeClass("alert-active");
+                    $("#intruder-status").text("CLEAR").css("color", "white");
+                    $("#intruder-icon").removeClass("fa-beat-fast").css({"color": "var(--meta-amber)", "opacity": "0.2"});
+                }
+
+                // ☣️ GAS ALERT LOGIC
+                if (gas > 1800) {
+                    $("#gas-alert-card").addClass("alert-active");
+                    $("#gas-status").text("TOXIC LEVEL").css("color", "var(--meta-red)");
+                    $("#gas-icon").addClass("fa-beat-fast").css({"color": "var(--meta-red)", "opacity": "1"});
+                } else {
+                    $("#gas-alert-card").removeClass("alert-active");
+                    $("#gas-status").text("OPTIMAL").css("color", "white");
+                    $("#gas-icon").removeClass("fa-beat-fast").css({"color": "var(--meta-amber)", "opacity": "0.2"});
+                }
+
+                // 🔥 FIRE ALERT LOGIC
+                const isFire = parseInt(getVal("Fire_Sensor")) === 1;
+                if (isFire) {
+                    $("#fire-card").addClass("alert-active");
+                    $("#fire-status").text("THERMAL ALERT").css("color", "var(--meta-red)");
+                    $("#fire-icon").addClass("fa-beat-fast").css({"color": "var(--meta-red)", "opacity": "1"});
+                } else {
+                    $("#fire-card").removeClass("alert-active");
+                    $("#fire-status").text("SAFE").css("color", "white");
+                    $("#fire-icon").removeClass("fa-beat-fast").css({"color": "var(--meta-red)", "opacity": "0.2"});
+                }
+            }
+        });
+    }
+
+    setInterval(updateCattleUI, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Poultry OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #050505;
+        --meta-gold: #facc15;
+        --meta-silver: #94a3b8;
+        --meta-red: #ff4444;
+        --glass: rgba(15, 15, 20, 0.85);
+        --glass-border: rgba(250, 204, 21, 0.25);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    body { 
+        background: var(--bg-deep); 
+        color: white; 
+        min-height: 100vh; 
+        width: 100vw;
+        overflow-x: hidden; 
+        position: relative; 
+    }
+
+    /* --- ALERT BANNERS --- */
+    .alert-banner {
+        position: fixed; top: 0; left: 0; width: 100%; padding: 12px;
+        text-align: center; font-family: 'Orbitron'; font-weight: 900;
+        font-size: 13px; z-index: 2000; display: none;
+        letter-spacing: 2px; box-shadow: 0 5px 25px rgba(255, 0, 0, 0.6);
+    }
+    #fire-alert-banner { background: #ff0000; color: white; border-bottom: 2px solid white; }
+    #gas-alert-banner { background: var(--meta-red); color: white; }
+
+    .bg-layer { 
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(250, 204, 21, 0.12) 0%, transparent 60%); 
+        z-index: -2; pointer-events: none; transition: background 0.5s;
+    }
+    /* Emergency Background State */
+    .bg-emergency { background-image: radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.25) 0%, transparent 70%) !important; }
+
+    .grid-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(250, 204, 21, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(250, 204, 21, 0.05) 1px, transparent 1px); background-size: 45px 45px; transform: perspective(500px) rotateX(60deg); z-index: -1; pointer-events: none; opacity: 0.6; }
+    
+    #spore-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .spore { position: absolute; width: 3px; height: 3px; background: var(--meta-gold); border-radius: 50%; filter: blur(1px); animation: floatUp 10s infinite linear; opacity: 0; }
+    @keyframes floatUp { 0% { transform: translateY(110vh); opacity: 0; } 50% { opacity: 0.7; } 100% { transform: translateY(-10vh); opacity: 0; } }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; padding-top: 75px; padding-bottom: 120px; position: relative; z-index: 10; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0 25px; }
+    .logo-mini { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--meta-gold); padding: 3px; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
+
+    .card { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 25px; padding: 22px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.4s; }
+    .label { font-size: 10px; color: var(--meta-gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; display: block; font-weight: 800; opacity: 0.9; }
+    .value { font-family: 'Orbitron'; font-size: 28px; font-weight: 900; }
+
+    /* ALERT STYLING */
+    .alert-card-red { border: 2.5px solid #ff0000 !important; background: rgba(255, 0, 0, 0.2) !important; box-shadow: 0 0 40px rgba(255, 0, 0, 0.3) !important; transform: scale(1.03); }
+    .alert-card-amber { border: 2px solid var(--meta-red) !important; background: rgba(255, 68, 68, 0.15) !important; }
+    .fa-danger { color: #ff0000 !important; filter: drop-shadow(0 0 15px #ff0000); }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .unit { font-size: 12px; margin-left: 4px; color: var(--meta-silver); font-family: 'Plus Jakarta Sans'; font-weight: 400; }
+
+    .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 400px; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 30px; height: 75px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .nav-item { color: rgba(255,255,255,0.2); font-size: 22px; transition: 0.3s; text-decoration: none; }
+    .nav-item.active { color: var(--meta-gold); filter: drop-shadow(0 0 8px var(--meta-gold)); }
+
+    .flash { animation: flash-anim 1s infinite; }
+    @keyframes flash-anim { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
+</head>
+<body>
+
+<div id="fire-alert-banner" class="alert-banner flash">🔥 CRITICAL: FIRE DETECTED IN COOP 🔥</div>
+<div id="gas-alert-banner" class="alert-banner flash">⚠️ WARNING: HIGH AMMONIA LEVELS ⚠️</div>
+
+<div class="bg-layer" id="bg-glow"></div>
+<div class="grid-bg"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <header>
+        <img src="{{ url_for('static', filename='images/ecogrow_logo.png') }}" class="logo-mini">
+        <div style="font-family: 'Orbitron'; font-size: 18px; letter-spacing: 3px;">POULTRY <span style="color:var(--meta-gold)">OS</span></div>
+        <i class="fa-solid fa-feather-pointed" id="header-icon" style="color:var(--meta-gold); font-size: 20px;"></i>
+    </header>
+
+    <div class="card" id="fire-card">
+        <span class="label" id="fire-label">Thermal Sentinel</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="value" id="fire-status">SECURE</div>
+            <i class="fa-solid fa-fire-extinguisher" id="fire-icon" style="font-size: 25px; opacity: 0.3;"></i>
+        </div>
+    </div>
+
+    <div class="card" id="ammonia-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <span class="label" id="gas-label">Ammonia</span>
+                <div class="value"><span id="gas">0</span></div>
+                <div style="font-size: 8px; opacity: 0.5; margin-top: 5px;">PPM LEVEL</div>
+            </div>
+            <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Ambient</span>
+                <div class="value" id="light-label" style="font-size: 20px;">SAFE</div>
+                <div style="font-size: 8px; opacity: 0.5; margin-top: 5px;">LIGHT STATUS</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Internal Temp</span>
+                <div class="value"><span id="temp">0.0</span><span class="unit">°C</span></div>
+            </div>
+            <div style="width: 1px; height: 40px; background: rgba(255,255,255,0.1);"></div>
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Humidity</span>
+                <div class="value"><span id="hum">0</span><span class="unit">%</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="card" style="margin-bottom:0; text-align:center;">
+            <span class="label">Heating/Light</span>
+            <i class="fa-solid fa-lightbulb" id="bulb-icon" style="font-size: 22px; color: var(--meta-silver); margin-bottom: 10px;"></i>
+            <div id="bulb-val" style="font-size: 10px; font-weight: 900; color: var(--meta-silver);">STANDBY</div>
+        </div>
+        <div class="card" style="margin-bottom:0; text-align:center;">
+            <span class="label">Feeder Door</span>
+            <i class="fa-solid fa-door-closed" id="door-icon" style="font-size: 22px; color: var(--meta-silver); margin-bottom: 10px;"></i>
+            <div id="door-val" style="font-size: 10px; font-weight: 900; color: var(--meta-silver);">STANDBY</div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; text-align: center; padding: 12px; border: none; background: transparent;">
+        <span class="label" style="margin-bottom: 5px;">System Pulse</span>
+        <div id="sync-time" style="font-size: 11px; font-family: 'Orbitron'; color: var(--meta-silver); letter-spacing: 1px;">SYNCING...</div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/poultry-dashboard" class="nav-item active"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/reports" class="nav-item"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.body.style.setProperty('--x', x + '%');
+        document.body.style.setProperty('--y', y + '%');
+    });
+
+    const sporeBox = document.getElementById('spore-container');
+    for (let i = 0; i < 15; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        spore.style.left = Math.random() * 100 + 'vw';
+        spore.style.animationDelay = Math.random() * 10 + 's';
+        sporeBox.appendChild(spore);
+    }
+
+    function updatePoultryUI() {
+        $.getJSON("/dashboard-data", res => {
+            if (res && res.data) {
+                const d = res.data;
+                
+                if (d.Timestamp) {
+                    const timeOnly = d.Timestamp.split(' ')[1] || "LIVE";
+                    $("#sync-time").text("LAST SYNC: " + timeOnly);
+                }
+
+                // 1. FIRE ALERT (PULLING FROM Fire_Status)
+                const isFire = parseInt(d.Fire_Status) === 1; 
+                if (isFire) {
+                    $("#fire-card").addClass("alert-card-red");
+                    $("#fire-status").text("FIRE DETECTED").css("color", "#ff0000");
+                    $("#fire-icon").addClass("fa-beat-fast").css({"opacity": "1", "color": "#ff0000"});
+                    $("#fire-alert-banner").show();
+                    $("#bg-glow").addClass("bg-emergency");
+                    $("#header-icon").removeClass("fa-feather-pointed").addClass("fa-triangle-exclamation fa-danger flash");
+                } else {
+                    $("#fire-card").removeClass("alert-card-red");
+                    $("#fire-status").text("SECURE").css("color", "white");
+                    $("#fire-icon").removeClass("fa-beat-fast").css({"opacity": "0.3", "color": "white"});
+                    $("#fire-alert-banner").hide();
+                    $("#bg-glow").removeClass("bg-emergency");
+                    $("#header-icon").addClass("fa-feather-pointed").removeClass("fa-triangle-exclamation fa-danger flash");
+                }
+
+                // 2. GAS ALERT
+                const gas = parseInt(d.Gas_Level) || 0;
+                $("#gas").text(gas);
+                if (gas > 1800) {
+                    $("#ammonia-card").addClass("alert-card-amber");
+                    $("#gas").css("color", "var(--meta-red)");
+                    if(!isFire) $("#gas-alert-banner").show();
+                } else {
+                    $("#ammonia-card").removeClass("alert-card-amber");
+                    $("#gas").css("color", "white");
+                    $("#gas-alert-banner").hide();
+                }
+
+                // 3. SENSORS & ACTUATORS
+                $("#temp").text(d.Temp || "0.0");
+                $("#hum").text(d.Humidity || "0");
+                $("#light-label").text(String(d.Light_Level || "SAFE").toUpperCase());
+
+                const bulb = String(d.Light_Bulb_Status || "OFF").toUpperCase();
+                $("#bulb-val").text(bulb);
+                if (bulb === "ON") $("#bulb-icon").addClass("fa-beat-fast").css("color", "var(--meta-gold)");
+                else $("#bulb-icon").removeClass("fa-beat-fast").css("color", "var(--meta-silver)");
+
+                const door = String(d.Door_Status || "CLOSED").toUpperCase();
+                $("#door-val").text(door);
+                if (door === "OPEN") $("#door-icon").removeClass("fa-door-closed").addClass("fa-door-open fa-bounce").css("color", "var(--meta-gold)");
+                else $("#door-icon").removeClass("fa-door-open fa-bounce").addClass("fa-door-closed").css("color", "var(--meta-silver)");
+            }
+        });
+    }
+
+    setInterval(updatePoultryUI, 1500);
+</script>
+</body>
+</html>

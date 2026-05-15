@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Aqua Logs</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #020408;
+        --meta-blue: #00d4ff;
+        --meta-cyan: #00fff2;
+        --glass: rgba(10, 20, 35, 0.75);
+        --glass-border: rgba(0, 212, 255, 0.3);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { 
+        background: var(--bg-deep); color: white; min-height: 100vh; overflow-x: hidden;
+        background-image: radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+    }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; padding-bottom: 120px; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+    .header-title { font-family: 'Orbitron'; font-size: 20px; letter-spacing: 4px; color: var(--meta-blue); }
+
+    .card {
+        background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 30px; 
+        padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .label { font-size: 11px; color: var(--meta-cyan); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; font-weight: 800; }
+
+    .btn-download {
+        width: 100%; padding: 18px; border-radius: 20px; border: 1px solid var(--meta-blue);
+        background: rgba(0, 212, 255, 0.1); color: var(--meta-blue); font-family: 'Orbitron';
+        font-weight: 900; font-size: 12px; cursor: pointer; margin-bottom: 20px; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-download:hover { background: var(--meta-blue); color: black; }
+
+    /* TABLE STYLING */
+    .table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 12px 8px; color: var(--meta-cyan); border-bottom: 1px solid var(--glass-border); text-transform: uppercase; font-size: 10px; }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'Orbitron'; }
+
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        width: 90%; max-width: 400px; background: rgba(0, 5, 15, 0.95); backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border); border-radius: 30px; height: 75px;
+        display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+    }
+    .nav-item { color: rgba(255,255,255,0.2); font-size: 24px; transition: 0.4s; text-decoration: none; }
+    .nav-item.active { color: var(--meta-blue); filter: drop-shadow(0 0 15px var(--meta-blue)); }
+</style>
+</head>
+<body>
+
+<div class="app">
+    <header>
+        <div class="header-title">AQUA<span style="color:white">LOGS</span></div>
+        <i class="fa-solid fa-microchip" style="color:var(--meta-blue); font-size: 20px;"></i>
+    </header>
+
+    <button class="btn-download" onclick="location.href='/download-csv'">
+        <i class="fa-solid fa-file-csv"></i> EXPORT REGISTRY (.CSV)
+    </button>
+
+    <div class="card">
+        <span class="label">pH Stability Pulse</span>
+        <canvas id="aquaReportsChart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+        <span class="label">Live Data Stream</span>
+        <div class="table-container">
+            <table id="aquaLogsTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>pH</th>
+                        <th>Turbid</th>
+                        <th>Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td>{{ row.get('Timestamp', '').split(' ')[1] }}</td>
+                        <td>{{ row.get('pH') }}</td>
+                        <td>{{ row.get('Turbidity') }}</td>
+                        <td>{{ row.get('Water_Level') }}cm</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/aqua-dashboard" class="nav-item"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/reports" class="nav-item active"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    // Initialize Chart with existing data from Flask
+    const ctx = document.getElementById('aquaReportsChart').getContext('2d');
+    const aquaChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for p in chart_pts %}"{{ p.get('Timestamp','').split(' ')[1] }}",{% endfor %}],
+            datasets: [{
+                data: [{% for p in chart_pts %}{{ p.get('pH',0) }},{% endfor %}],
+                borderColor: '#00d4ff',
+                backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                fill: true, tension: 0.4, pointRadius: 0
+            }]
+        },
+        options: { 
+            responsive: true,
+            plugins: { legend: { display: false } }, 
+            scales: { 
+                x: { display: false }, 
+                y: { min: 0, max: 14, ticks: { color: 'rgba(255,255,255,0.3)' } } 
+            } 
+        }
+    });
+
+    // 1-Second Real-Time Update
+    setInterval(() => {
+        $.getJSON("/dashboard-data", res => {
+            if (res && res.data) {
+                const d = res.data;
+                const time = d["Timestamp"].split(' ')[1];
+                
+                // Update Chart
+                aquaChart.data.labels.push(time);
+                aquaChart.data.datasets[0].data.push(d["pH"]);
+                if(aquaChart.data.labels.length > 15) { 
+                    aquaChart.data.labels.shift(); 
+                    aquaChart.data.datasets[0].data.shift(); 
+                }
+                aquaChart.update();
+
+                // Update Table (Prepend newest data at the top)
+                const row = `<tr>
+                    <td>${time}</td>
+                    <td>${d["pH"]}</td>
+                    <td>${d["Turbidity"]}</td>
+                    <td>${d["Water_Level"]}cm</td>
+                </tr>`;
+                $('#aquaLogsTable tbody').prepend(row);
+                
+                // Keep only the last 20 rows visible
+                if ($('#aquaLogsTable tbody tr').length > 20) {
+                    $('#aquaLogsTable tbody tr:last').remove();
+                }
+            }
+        });
+    }, 1000);
+</script>
+</body>
+</html>

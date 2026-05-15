@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Cattle Logs</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root {
+        --bg-deep: #020408;
+        --meta-amber: #ffaa00;
+        --meta-purple: #a855f7;
+        --meta-red: #ff3e3e;
+        --glass: rgba(15, 10, 25, 0.8);
+        --glass-border: rgba(255, 170, 0, 0.25);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-deep); color: white; min-height: 100vh; overflow-x: hidden; position: relative; }
+
+    /* UNIFIED THEME LAYERS (THE BOX EFFECT) */
+    .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 170, 0, 0.12) 0%, transparent 60%); z-index: -2; pointer-events: none; }
+    .grid-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: linear-gradient(rgba(255, 170, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 170, 0, 0.05) 1px, transparent 1px); background-size: 45px 45px; transform: perspective(500px) rotateX(60deg) translateY(var(--ty, 0)); z-index: -1; pointer-events: none; }
+    
+    .spore {
+        position: absolute; width: 4px; height: 4px; background: var(--meta-amber); border-radius: 50%;
+        filter: blur(2px) drop-shadow(0 0 8px var(--meta-amber)); animation: floatUp 12s infinite linear; pointer-events: none; z-index: 0;
+    }
+    @keyframes floatUp { 0% { transform: translateY(105vh); opacity: 0; } 50% { opacity: 0.7; } 100% { transform: translateY(-10vh); opacity: 0; } }
+
+    .app { max-width: 450px; margin: auto; padding: 25px; padding-bottom: 120px; position: relative; z-index: 10; }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+    .header-title { font-family: 'Orbitron'; font-size: 20px; letter-spacing: 4px; color: var(--meta-amber); }
+    .logo-mini { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--meta-amber); padding: 3px; filter: drop-shadow(0 0 10px var(--meta-amber)); }
+
+    /* CARDS */
+    .card {
+        background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border); border-radius: 30px; 
+        padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .label { font-size: 11px; color: var(--meta-amber); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; font-weight: 800; }
+
+    .btn-download {
+        width: 100%; padding: 18px; border-radius: 20px; border: 1px solid var(--meta-amber);
+        background: rgba(255, 170, 0, 0.1); color: var(--meta-amber); font-family: 'Orbitron';
+        font-weight: 900; font-size: 11px; cursor: pointer; margin-bottom: 20px; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .btn-download:hover { background: var(--meta-amber); color: black; box-shadow: 0 0 20px rgba(255, 170, 0, 0.4); }
+
+    /* DATA TABLE */
+    .table-container { width: 100%; overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { text-align: left; padding: 12px 8px; color: var(--meta-purple); border-bottom: 1px solid var(--glass-border); text-transform: uppercase; font-size: 9px; }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'Orbitron'; }
+
+    /* NAVIGATION */
+    .bottom-nav {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        width: 90%; max-width: 400px; background: rgba(5, 5, 10, 0.95); backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border); border-radius: 30px; height: 75px;
+        display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+    }
+    .nav-item { color: rgba(255,255,255,0.2); font-size: 24px; transition: 0.4s; text-decoration: none; }
+    .nav-item.active { color: var(--meta-amber); filter: drop-shadow(0 0 15px var(--meta-amber)); }
+</style>
+</head>
+<body>
+
+<div class="bg-layer" id="bg-glow"></div>
+<div class="grid-bg" id="grid"></div>
+<div id="spore-container"></div>
+
+<div class="app">
+    <header>
+        <img src="{{ url_for('static', filename='images/ecogrow_logo.png') }}" class="logo-mini">
+        <div class="header-title">CATTLE<span style="color:white">LOGS</span></div>
+        <i class="fa-solid fa-cow" style="color:var(--meta-amber); font-size: 20px;"></i>
+    </header>
+
+    <button class="btn-download" onclick="location.href='/download-csv'">
+        <i class="fa-solid fa-file-csv"></i> EXPORT CATTLE_REGISTRY (.CSV)
+    </button>
+
+    <div class="card">
+        <span class="label">Ammonia (Gas) Stability Pulse</span>
+        <canvas id="cattleReportsChart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+        <span class="label">Historical Shed Stream</span>
+        <div class="table-container">
+            <table id="cattleLogsTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Gas</th>
+                        <th>Dung</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td>{{ row.get('Timestamp', '').split(' ')[1] }}</td>
+                        <td>{{ row.get('Gas_Level') }}</td>
+                        <td>{{ row.get('Dung_Level') }}%</td>
+                        <td style="color: {{ 'var(--meta-amber)' if row.get('Threat_Status') == 'SAFE' else 'var(--meta-red)' }}">
+                            {{ row.get('Threat_Status') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="/cattle-dashboard" class="nav-item"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community" class="nav-item"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/reports" class="nav-item active"><i class="fa-solid fa-chart-pie"></i></a>
+    <a href="/profile" class="nav-item"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    /* MOUSE PARALLAX & GLOW */
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 100;
+        const y = (e.clientY / window.innerHeight) * 100;
+        document.body.style.setProperty('--x', x + '%');
+        document.body.style.setProperty('--y', y + '%');
+        document.getElementById('grid').style.setProperty('--ty', (y * -0.2) + 'px');
+    });
+
+    /* GENERATE SPORES */
+    const container = document.getElementById('spore-container');
+    for (let i = 0; i < 20; i++) {
+        const spore = document.createElement('div');
+        spore.className = 'spore';
+        spore.style.left = Math.random() * 100 + 'vw';
+        spore.style.animationDelay = Math.random() * 10 + 's';
+        container.appendChild(spore);
+    }
+
+    /* CHART INITIALIZATION */
+    const ctx = document.getElementById('cattleReportsChart').getContext('2d');
+    const cattleChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for p in chart_pts %}"{{ p.get('Timestamp','').split(' ')[1] }}",{% endfor %}],
+            datasets: [{
+                data: [{% for p in chart_pts %}{{ p.get('Gas_Level',0) }},{% endfor %}],
+                borderColor: '#ffaa00',
+                backgroundColor: 'rgba(255, 170, 0, 0.1)',
+                fill: true, tension: 0.4, pointRadius: 2, pointBackgroundColor: '#ffaa00'
+            }]
+        },
+        options: { 
+            plugins: { legend: { display: false } }, 
+            scales: { 
+                x: { display: false }, 
+                y: { ticks: { color: 'rgba(255,255,255,0.3)' }, grid: { color: 'rgba(255,255,255,0.05)' } } 
+            } 
+        }
+    });
+
+    /* LIVE REFRESH ENGINE (1s) */
+    setInterval(() => {
+        $.getJSON("/dashboard-data", res => {
+            if (res && res.data) {
+                const d = res.data;
+                const time = d["Timestamp"].split(' ')[1];
+                
+                // Update Chart
+                cattleChart.data.labels.push(time);
+                cattleChart.data.datasets[0].data.push(d["Gas_Level"]);
+                if(cattleChart.data.labels.length > 15) { 
+                    cattleChart.data.labels.shift(); 
+                    cattleChart.data.datasets[0].data.shift(); 
+                }
+                cattleChart.update('none'); // Silent update for performance
+
+                // Update Table (Prepend newest)
+                const statusColor = d["Threat_Status"] === "SAFE" ? "var(--meta-amber)" : "var(--meta-red)";
+                const row = `<tr>
+                    <td>${time}</td>
+                    <td>${d["Gas_Level"]}</td>
+                    <td>${d["Dung_Level"]}%</td>
+                    <td style="color:${statusColor}">${d["Threat_Status"]}</td>
+                </tr>`;
+                $('#cattleLogsTable tbody').prepend(row);
+                if ($('#cattleLogsTable tbody tr').length > 20) $('#cattleLogsTable tbody tr:last').remove();
+            }
+        });
+    }, 1000);
+</script>
+</body>
+</html>

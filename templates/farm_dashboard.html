@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EcoGrow | Predictive Farm OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --bg-deep: #020604;
+    --meta-green: #00ff88;
+    --meta-blue: #00d4ff;
+    --meta-gold: #ffcc00;
+    --meta-red: #ff3e3e;
+    --glass: rgba(10, 20, 15, 0.7);
+    --glass-border: rgba(0, 255, 136, 0.2);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+body {
+    background: var(--bg-deep);
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    background-image: 
+        radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(0, 255, 136, 0.15) 0%, transparent 60%),
+        linear-gradient(rgba(0, 255, 136, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 50px 50px, 50px 50px;
+}
+
+/* ALERT HUB STYLING */
+.alert-box {
+    padding: 15px; border-radius: 20px; margin-bottom: 15px;
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Orbitron'; font-size: 10px; font-weight: 800;
+    border: 1px solid transparent; animation: slideIn 0.4s ease-out;
+}
+.alert-box.critical { background: rgba(255, 62, 62, 0.15); border-color: var(--meta-red); color: var(--meta-red); box-shadow: 0 0 20px rgba(255, 62, 62, 0.2); }
+.alert-box.warning { background: rgba(255, 204, 0, 0.15); border-color: var(--meta-gold); color: var(--meta-gold); }
+.alert-box.community { background: rgba(0, 212, 255, 0.15); border-color: var(--meta-blue); color: var(--meta-blue); }
+
+@keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.app { max-width: 450px; margin: auto; padding: 25px; padding-bottom: 110px; position: relative; z-index: 10; }
+
+header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+.logo-mini { width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--meta-green); padding: 3px; filter: drop-shadow(0 0 10px var(--meta-green)); }
+
+.card {
+    background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border); border-radius: 30px; 
+    padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.label { font-size: 11px; color: var(--meta-green); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; font-weight: 800; }
+.value { font-family: 'Orbitron'; font-size: 38px; font-weight: 900; color: #fff; }
+
+.pump-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.pump-item { background: rgba(0,0,0,0.3); border-radius: 20px; padding: 12px 5px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+
+.circle-gauge {
+    width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 10px;
+    background: conic-gradient(from 180deg, var(--meta-blue) 0%, var(--meta-green) 100%);
+    mask: radial-gradient(transparent 58%, black 63%); -webkit-mask: radial-gradient(transparent 58%, black 63%);
+    transition: 1.5s ease-out;
+}
+
+.bottom-nav {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 90%; max-width: 400px; background: rgba(0, 10, 5, 0.95); backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border); border-radius: 30px; height: 75px;
+    display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+}
+.bottom-nav a { color: rgba(255,255,255,0.2); font-size: 24px; transition: 0.4s; }
+.bottom-nav a.active { color: var(--meta-green); filter: drop-shadow(0 0 15px var(--meta-green)); }
+</style>
+</head>
+
+<body>
+<div class="app">
+    <header>
+        <img src="{{ url_for('static', filename='images/ecogrow_logo.png') }}" class="logo-mini">
+        <div style="font-family: 'Orbitron'; font-size: 20px; letter-spacing: 4px;">FARM <span style="color:var(--meta-green)">OS</span></div>
+        <i class="fa-solid fa-tower-broadcast" id="sync-icon" style="color:var(--meta-green); font-size: 20px;"></i>
+    </header>
+
+    <div id="alert-hub"></div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Atmosphere</span>
+                <div class="value"><span id="temp">0</span><span style="font-size:18px">°C</span></div>
+            </div>
+            <div style="width: 1px; height: 50px; background: rgba(255,255,255,0.1);"></div>
+            <div style="text-align: center; flex: 1;">
+                <span class="label">Humidity</span>
+                <div class="value"><span id="hum">0</span><span style="font-size:18px">%</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border: 1px dashed var(--meta-blue); background: rgba(0, 212, 255, 0.05);">
+        <span class="label" style="color: var(--meta-blue);"><i class="fa-solid fa-brain"></i> AI PREDICTIVE FORECAST</span>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <div class="value" style="color: var(--meta-blue); font-size: 32px;">
+                <span id="pred-val">--</span><span style="font-size:14px">%</span>
+            </div>
+            <div style="font-size: 10px; font-weight: 800; color: rgba(0, 212, 255, 0.8);">TREND: <span id="trend-text">ANALYZING</span></div>
+        </div>
+        <div style="font-size: 9px; margin-top: 10px; opacity: 0.6; font-weight: 700;">Zone 1 moisture estimate (Next 5-min interval)</div>
+    </div>
+
+    <div class="card">
+        <span class="label">Multi-Zone Hydration</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <div style="text-align: center;">
+                <div id="sm-gauge1" class="circle-gauge"></div>
+                <div style="font-family: 'Orbitron'; font-size: 18px; font-weight: 800;"><span id="sm1">0</span>%</div>
+                <div style="font-size: 9px; opacity: 0.6; text-transform: uppercase;">Zone 1</div>
+            </div>
+            <div style="text-align: center;">
+                <div id="sm-gauge2" class="circle-gauge"></div>
+                <div style="font-family: 'Orbitron'; font-size: 18px; font-weight: 800;"><span id="sm2">0</span>%</div>
+                <div style="font-size: 9px; opacity: 0.6; text-transform: uppercase;">Zone 2</div>
+            </div>
+            <div style="text-align: center;">
+                <div id="sm-gauge3" class="circle-gauge"></div>
+                <div style="font-family: 'Orbitron'; font-size: 18px; font-weight: 800;"><span id="sm3">0</span>%</div>
+                <div style="font-size: 9px; opacity: 0.6; text-transform: uppercase;">Zone 3</div>
+            </div>
+        </div>
+        <div class="pump-grid">
+            <div class="pump-item">
+                <span style="font-size: 8px; font-weight: 900; color: var(--meta-green);">SYSTEM STATUS</span>
+                <div id="pump-status" style="font-family: 'Orbitron'; font-size: 10px; margin-top: 5px;">OFF</div>
+            </div>
+            <div class="pump-item">
+                <span style="font-size: 8px; font-weight: 900; color: var(--meta-blue);">TOTAL WATER</span>
+                <div id="water-used" style="font-family: 'Orbitron'; font-size: 10px; margin-top: 5px;">0.00 L</div>
+            </div>
+        </div>
+        <div id="pump-reason" style="font-size: 9px; text-align: center; margin-top: 10px; color: rgba(255,255,255,0.4); font-weight: 700;">WAITING FOR DATA...</div>
+    </div>
+
+    <div class="card" id="tank-card" style="display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--meta-green);">
+        <div>
+            <span class="label">Reservoir Level</span>
+            <div class="value"><span id="tank">0</span><span style="font-size:18px">%</span></div>
+            <div id="tank-msg" style="font-size: 10px; font-weight: 900; margin-top: 8px;">NOMINAL</div>
+        </div>
+        <div id="tank-gauge" style="width: 80px; height: 80px; border-radius: 50%; mask: radial-gradient(transparent 58%, black 63%); -webkit-mask: radial-gradient(transparent 58%, black 63%);"></div>
+    </div>
+
+    <div class="card">
+        <span class="label">Bio-Vitality Index</span>
+        <div id="health-label" style="font-family:'Orbitron'; font-weight:900; margin-bottom:10px;">ANALYZING...</div>
+        <canvas id="healthChart" height="150"></canvas>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a class="active"><i class="fa-solid fa-house-signal"></i></a>
+    <a href="/community"><i class="fa-solid fa-people-roof"></i></a>
+    <a href="/resources"><i class="fa-solid fa-chart-pie"></i></a> <a href="/profile"><i class="fa-solid fa-user-astronaut"></i></a>
+</nav>
+
+<script>
+    // Parallax Effect
+    window.addEventListener('mousemove', (e) => {
+        document.body.style.setProperty('--x', (e.clientX / window.innerWidth) * 100 + '%');
+        document.body.style.setProperty('--y', (e.clientY / window.innerHeight) * 100 + '%');
+    });
+
+    // Health Chart Setup
+    const ctx = document.getElementById('healthChart').getContext('2d');
+    const healthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(15).fill(''),
+            datasets: [{
+                data: Array(15).fill(0),
+                borderColor: '#00ff88',
+                backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                fill: true, tension: 0.4, pointRadius: 0
+            }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 0, max: 100, ticks: { display: false } } } }
+    });
+
+    function updateUI(res) {
+        if (!res || !res.data) return;
+        const d = res.data;
+        const pred = res.prediction;
+        const alerts = res.alerts;
+
+        // Core Sensors
+        $("#temp").text(d["Temperature (°C)"]);
+        $("#hum").text(d["Humidity (%)"]);
+        $("#tank").text(d["Tank_Level (%)"]);
+        $("#water-used").text(parseFloat(d["Water_Used_Total"]).toFixed(2) + " L");
+        
+        // Multi-Zone Gauges
+        const moistures = [d["Soil_Moisture_Zone1 (%)"], d["Soil_Moisture_Zone2 (%)"], d["Soil_Moisture_Zone3 (%)"]];
+        for(let i=1; i<=3; i++){
+            let v = Math.round(moistures[i-1]);
+            $("#sm"+i).text(v);
+            $("#sm-gauge"+i).css('background', `conic-gradient(var(--meta-blue) 0%, var(--meta-green) ${v}%, #1a1a1a ${v}%)`);
+        }
+
+        // --- UPDATE AI PREDICTION UI ---
+        if (pred && pred !== "Calculating...") {
+            $("#pred-val").text(pred);
+            const currentM = d["Soil_Moisture_Zone1 (%)"];
+            if (pred < currentM) {
+                $("#trend-text").text("DRYING").css("color", "var(--meta-red)");
+            } else if (pred > currentM) {
+                $("#trend-text").text("HYDRATING").css("color", "var(--meta-green)");
+            } else {
+                $("#trend-text").text("STABLE").css("color", "var(--meta-blue)");
+            }
+        }
+
+        // Pump & Tank Logic
+        $("#pump-status").text(d["Pump_Status"]).css("color", d["Pump_Status"] === "ON" ? "var(--meta-green)" : "white");
+        $("#pump-reason").text("LOG: " + d["Pump_Reason"]);
+
+        let tLevel = d["Tank_Level (%)"];
+        let isLow = d["Tank_Low_Alert (0/1)"] == 1;
+        let tCol = isLow ? "var(--meta-red)" : "var(--meta-green)";
+        $("#tank-gauge").css('background', `conic-gradient(${tCol} ${tLevel}%, #1a1a1a ${tLevel}%)`);
+        $("#tank-msg").text(isLow ? "CRITICAL: REFILL" : "NOMINAL").css("color", tCol);
+        $("#tank-card").css("border-left-color", tCol);
+
+        // Bio-Vitality (Crop Health)
+        const health = d["Crop_Health (%)"];
+        $("#health-label").text(`HEALTH INDEX: ${health}%`).css("color", health > 70 ? "var(--meta-green)" : "var(--meta-red)");
+        healthChart.data.datasets[0].data.shift();
+        healthChart.data.datasets[0].data.push(health);
+        healthChart.update();
+
+        // Alert Management
+        const hub = $("#alert-hub");
+        hub.empty();
+        
+        if(d["Intruder (0/1)"] == 1) {
+            hub.append(`<div class="alert-box critical"><i class="fa-solid fa-user-ninja fa-beat"></i><span>INTRUSION DETECTED: PERIMETER BREACH</span></div>`);
+        }
+        
+        if(d["Rain (0/1)"] == 1) {
+            hub.append(`<div class="alert-box community"><i class="fa-solid fa-cloud-showers-heavy"></i><span>PRECIPITATION DETECTED: AUTO-IRRIGATION PAUSED</span></div>`);
+        }
+
+        if (alerts && alerts.length > 0) {
+            alerts.forEach(a => {
+                hub.append(`<div class="alert-box ${a.type}"><i class="fa-solid fa-triangle-exclamation fa-beat"></i><span>${a.msg}</span></div>`);
+            });
+        }
+    }
+
+    // Dynamic Syncing
+    setInterval(() => {
+        $.getJSON("/dashboard-data?v=" + new Date().getTime(), res => { 
+            if (res) {
+                updateUI(res); 
+                $("#sync-icon").addClass("fa-spin");
+                setTimeout(() => $("#sync-icon").removeClass("fa-spin"), 500);
+            } 
+        });
+    }, 2000); 
+</script>
+</body>
+</html>
